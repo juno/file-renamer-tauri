@@ -16,12 +16,14 @@
 ### filename.txt の仕様
 
 リネームされた順に元のファイル名を列挙したテキストファイル。
-例：`02.mp4` が元は `foo.mp4` だったことを確認できる。
+例：`bar.mp4` と `foo.mp4` をリネームすると：
 
 ```text
 bar.mp4
 foo.mp4
 ```
+
+これにより `01.mp4` が元の `bar.mp4`、`02.mp4` が元の `foo.mp4` だったとわかる。
 
 ## 動作環境
 
@@ -44,10 +46,15 @@ npm run tauri dev
 ## ビルド
 
 ```bash
-npm run tauri build
+npm run release
 ```
 
-ビルド成果物は `src-tauri/target/release/bundle/` に出力される。
+ユニバーサルバイナリ（Apple Silicon + Intel 対応）を生成し、`src-tauri/target/universal-apple-darwin/release/bundle/` に出力される。
+
+- **DMG インストーラ**: `src-tauri/target/universal-apple-darwin/release/bundle/dmg/`
+- **App バンドル**: `src-tauri/target/universal-apple-darwin/release/bundle/macos/File Renamer.app`
+
+インストールは DMG を開いて `File Renamer.app` をアプリケーションフォルダにドラッグするか、`.app` バンドルを直接コピーする。
 
 ## 技術スタック
 
@@ -55,3 +62,7 @@ npm run tauri build
 - [Vite](https://vitejs.dev/) — フロントエンドビルドツール
 - Vanilla JS / CSS — フロントエンド
 - Rust — ファイル操作バックエンド
+
+## ライセンス
+
+[MIT](LICENSE.md)

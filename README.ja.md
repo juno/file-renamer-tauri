@@ -2,6 +2,10 @@
 
 フォルダをドロップするだけで、中のファイルを連番にリネームする macOS 用 GUI ユーティリティ。
 
+![Screenshot (Before drop folder)](screenshot-01.png)
+
+![Screenshot (After drop folder)](screenshot-02.png)
+
 ## 機能
 
 - フォルダをドラッグ&ドロップするだけで処理完了

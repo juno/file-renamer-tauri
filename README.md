@@ -2,6 +2,10 @@
 
 A minimal macOS GUI utility that renames all files in a dropped folder to sequential numbers.
 
+![Screenshot (Before drop folder)](screenshot-01.png)
+
+![Screenshot (After drop folder)](screenshot-02.png)
+
 ## Features
 
 - Drop a folder onto the window — that's it

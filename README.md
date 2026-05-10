@@ -51,6 +51,11 @@ npm run tauri build
 
 The distributable is output to `src-tauri/target/release/bundle/`.
 
+- **DMG installer**: `src-tauri/target/release/bundle/dmg/`
+- **App bundle**: `src-tauri/target/release/bundle/macos/File Renamer.app`
+
+To install, open the DMG and drag `File Renamer.app` to your Applications folder, or copy the `.app` bundle directly.
+
 ## Tech Stack
 
 - [Tauri v2](https://tauri.app/) — native app framework

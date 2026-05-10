@@ -46,13 +46,13 @@ npm run tauri dev
 ## Build
 
 ```bash
-npm run tauri build
+npm run release
 ```
 
-The distributable is output to `src-tauri/target/release/bundle/`.
+Builds a universal binary (Apple Silicon + Intel) and outputs to `src-tauri/target/universal-apple-darwin/release/bundle/`.
 
-- **DMG installer**: `src-tauri/target/release/bundle/dmg/`
-- **App bundle**: `src-tauri/target/release/bundle/macos/File Renamer.app`
+- **DMG installer**: `src-tauri/target/universal-apple-darwin/release/bundle/dmg/`
+- **App bundle**: `src-tauri/target/universal-apple-darwin/release/bundle/macos/File Renamer.app`
 
 To install, open the DMG and drag `File Renamer.app` to your Applications folder, or copy the `.app` bundle directly.
 

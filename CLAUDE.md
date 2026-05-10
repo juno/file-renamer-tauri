@@ -11,7 +11,7 @@ macOS 専用のデスクトップアプリ。フォルダをドロップする�
 ```bash
 npm install            # 依存関係のインストール
 npm run tauri dev      # 開発サーバー起動（Vite + Tauri）
-npm run tauri build    # リリースビルド（成果物: src-tauri/target/release/bundle/）
+npm run release        # リリースビルド・ユニバーサルバイナリ（成果物: src-tauri/target/release/bundle/）
 ```
 
 テストは現時点で存在しない。Rust のユニットテストを追加する場合は `src-tauri/src/lib.rs` 内に `#[cfg(test)]` モジュールとして書く。

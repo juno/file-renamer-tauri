@@ -62,6 +62,137 @@ fn rename_files(folder_path: String) -> Result<String, String> {
     Ok(format!("{} 件のファイルをリネームしました", total))
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+    use std::sync::atomic::{AtomicUsize, Ordering};
+
+    static COUNTER: AtomicUsize = AtomicUsize::new(0);
+
+    fn tmp() -> std::path::PathBuf {
+        let n = COUNTER.fetch_add(1, Ordering::SeqCst);
+        let dir = std::env::temp_dir().join(format!("file_renamer_test_{}", n));
+        fs::create_dir_all(&dir).unwrap();
+        dir
+    }
+
+    fn call(dir: &std::path::Path) -> Result<String, String> {
+        rename_files(dir.to_string_lossy().to_string())
+    }
+
+    #[test]
+    fn basic_rename_and_filename_txt() {
+        let dir = tmp();
+        fs::write(dir.join("b.txt"), "").unwrap();
+        fs::write(dir.join("a.txt"), "").unwrap();
+
+        assert!(call(&dir).is_ok());
+        assert!(dir.join("01.txt").exists());
+        assert!(dir.join("02.txt").exists());
+        assert_eq!(fs::read_to_string(dir.join("filename.txt")).unwrap(), "a.txt\nb.txt");
+
+        fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn preserves_extension() {
+        let dir = tmp();
+        fs::write(dir.join("foo.mp4"), "").unwrap();
+
+        assert!(call(&dir).is_ok());
+        assert!(dir.join("01.mp4").exists());
+
+        fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn no_extension() {
+        let dir = tmp();
+        fs::write(dir.join("README"), "").unwrap();
+
+        assert!(call(&dir).is_ok());
+        assert!(dir.join("01").exists());
+
+        fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn skips_hidden_files() {
+        let dir = tmp();
+        fs::write(dir.join(".hidden"), "").unwrap();
+        fs::write(dir.join("visible.txt"), "").unwrap();
+
+        assert!(call(&dir).is_ok());
+        assert!(dir.join("01.txt").exists());
+        assert!(!dir.join("02.txt").exists());
+        assert!(dir.join(".hidden").exists());
+
+        fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn skips_subdirectories() {
+        let dir = tmp();
+        fs::create_dir(dir.join("subdir")).unwrap();
+        fs::write(dir.join("file.txt"), "").unwrap();
+
+        assert!(call(&dir).is_ok());
+        assert!(dir.join("01.txt").exists());
+        assert!(dir.join("subdir").is_dir());
+
+        fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn skips_existing_filename_txt() {
+        let dir = tmp();
+        fs::write(dir.join("filename.txt"), "old").unwrap();
+        fs::write(dir.join("a.txt"), "").unwrap();
+
+        assert!(call(&dir).is_ok());
+        assert!(dir.join("01.txt").exists());
+        assert_eq!(fs::read_to_string(dir.join("filename.txt")).unwrap(), "a.txt");
+
+        fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn three_digit_padding_for_100_plus_files() {
+        let dir = tmp();
+        for i in 0..100 {
+            fs::write(dir.join(format!("file_{:03}.txt", i)), "").unwrap();
+        }
+
+        assert!(call(&dir).is_ok());
+        assert!(dir.join("001.txt").exists());
+        assert!(dir.join("100.txt").exists());
+        assert!(!dir.join("01.txt").exists());
+
+        fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn error_on_non_directory() {
+        let dir = tmp();
+        let file = dir.join("file.txt");
+        fs::write(&file, "").unwrap();
+
+        assert!(rename_files(file.to_string_lossy().to_string()).is_err());
+
+        fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn error_on_empty_directory() {
+        let dir = tmp();
+
+        assert!(call(&dir).is_err());
+
+        fs::remove_dir_all(&dir).ok();
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()

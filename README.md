@@ -12,6 +12,7 @@ A minimal macOS GUI utility that renames all files in a dropped folder to sequen
 - Files are renamed to `01.ext`, `02.ext`, ... preserving their original extensions
 - A `filename.txt` is created inside the folder, listing the original filenames in order
 - Automatically switches to 3-digit numbering (`001`, `002`, ...) for 100+ files
+- Drop the same folder again after adding new files — existing files keep their original names, new files are appended at the end in sorted order
 
 ### filename.txt
 
@@ -24,6 +25,8 @@ foo.mp4
 ```
 
 This tells you `01.mp4` was `bar.mp4` and `02.mp4` was `foo.mp4`.
+
+When you drop the same folder again, `filename.txt` is read to restore the original-name mapping and new files are appended after the existing ones.
 
 ## Requirements
 

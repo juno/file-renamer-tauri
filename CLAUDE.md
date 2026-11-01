@@ -1,10 +1,8 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
 ## Overview
 
-macOS 専用のデスクトップアプリ。フォルダをドロップすると中のファイルを連番（`01.ext`, `02.ext`, ...）にリネームし、元ファイル名の対応表 `filename.txt` を生成する。
+macOS 専用のデスクトップアプリ。フォルダをドロップすると中のファイルを連番（`01.ext`, `02.ext`, ...）にリネームし、元ファイル名の対応表 `filename.txt` を生成する。「元に戻すモード」では `filename.txt` を使って元の名前に戻す。
 
 ## Commands
 
@@ -12,35 +10,17 @@ macOS 専用のデスクトップアプリ。フォルダをドロップする�
 pnpm install            # 依存関係のインストール
 pnpm run tauri dev      # 開発サーバー起動（Vite + Tauri）
 pnpm run release        # リリースビルド・ユニバーサルバイナリ（成果物: src-tauri/target/release/bundle/）
+cd src-tauri && cargo test   # Rust のテスト（CI は fmt・clippy も実行）
 ```
 
 **README の同期**: `README.md` を編集した場合は必ず `README.ja.md` も同じ内容になるよう日本語訳を更新すること。両ファイルは常に同期を保つ。
 
-テストは現時点で存在しない。Rust のユニットテストを追加する場合は `src-tauri/src/lib.rs` 内に `#[cfg(test)]` モジュールとして書く。
+**コードレビュー**: `CODING_STANDARDS.md` の基準で行う。
 
 ## Architecture
 
 Tauri v2 アプリ。フロントエンドと Rust バックエンドが IPC で通信する。
 
-### フロントエンド (`src/`)
-
-- フレームワークなし（Vanilla JS + Vite）
-- `src/main.js` — Tauri の `onDragDropEvent` でドラッグ&ドロップを受け取り、`invoke('rename_files', ...)` でバックエンドを呼び出す。UI 状態（`default` / `dragging` / `loading` / `success` / `error`）を CSS クラスで管理
-- `src/style.css` — Apple HIG 準拠のスタイル。状態クラスが border・color を変える
-
-### バックエンド (`src-tauri/src/lib.rs`)
-
-`rename_files(folder_path: String)` が唯一の Tauri コマンド。処理フロー：
-
-1. ファイル一覧取得（隠しファイル・サブディレクトリ・`filename.txt` を除外）
-2. アルファベット順ソート
-3. **Phase 1**: 全ファイルを `.renamer_tmp_N` に一時リネーム（命名衝突防止）
-4. **Phase 2**: 最終連番名（`01.ext` ... または `001.ext` ...）にリネーム
-5. `filename.txt` 書き込み（元ファイル名を順番に1行ずつ）
-
-桁数: ファイル数が 100 未満なら 2 桁、100 以上なら 3 桁。
-
-### Tauri 設定
-
-- `src-tauri/tauri.conf.json` — ウィンドウサイズ 480×360、リサイズ不可、バンドル設定
+- `src/main.js` — `onDragDropEvent` でドロップを受け取り、チェックボックスの状態で `rename_files` / `restore_files` を `invoke` する。UI 状態（`default` / `dragging` / `loading` / `success` / `error`）は CSS クラスで管理。フレームワークなし（Vanilla JS + Vite）
+- `src-tauri/src/lib.rs` — Tauri コマンド `rename_files` / `restore_files` と、その単体テスト（`#[cfg(test)]` モジュール）。再ドロップ時は `filename.txt` を読んで既存の対応を引き継ぐ（`build_entries`）
 - `src-tauri/capabilities/default.json` — Tauri v2 のパーミッション定義。新しい Tauri API を使う場合はここに追加が必要

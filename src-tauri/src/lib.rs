@@ -27,7 +27,7 @@ fn rename_files(folder_path: String) -> Result<String, String> {
     }
 
     // entries: (original_name, current_name_in_folder)
-    let entries: Vec<(String, String)> = build_entries(&dir, &files_in_folder);
+    let entries: Vec<(String, String)> = build_entries(dir, &files_in_folder);
 
     let total = entries.len();
     let digits = if total >= 100 { 3 } else { 2 };
@@ -105,8 +105,7 @@ fn restore_files(folder_path: String) -> Result<String, String> {
         .collect();
     rename_via_temp(dir, &moves)?;
 
-    fs::remove_file(&list)
-        .map_err(|e| format!("filename.txt の削除に失敗しました: {}", e))?;
+    fs::remove_file(&list).map_err(|e| format!("filename.txt の削除に失敗しました: {}", e))?;
 
     Ok(format!("{} 件のファイルを元に戻しました", originals.len()))
 }
@@ -120,8 +119,8 @@ fn rename_via_temp(dir: &Path, moves: &[(String, String)]) -> Result<(), String>
         for i in (0..finalized).rev() {
             let _ = fs::rename(dir.join(&moves[i].1), tmp(i));
         }
-        for i in 0..in_tmp {
-            let _ = fs::rename(tmp(i), dir.join(&moves[i].0));
+        for (i, (from, _)) in moves.iter().enumerate().take(in_tmp) {
+            let _ = fs::rename(tmp(i), dir.join(from));
         }
     };
 
@@ -171,7 +170,11 @@ fn build_entries(dir: &Path, files_in_folder: &[String]) -> Vec<(String, String)
     }
 
     let files_set: HashSet<&String> = files_in_folder.iter().collect();
-    let old_digits = if existing_originals.len() >= 100 { 3 } else { 2 };
+    let old_digits = if existing_originals.len() >= 100 {
+        3
+    } else {
+        2
+    };
 
     let mut matched: Vec<(String, String)> = Vec::new();
     let mut known_sequential: HashSet<String> = HashSet::new();
@@ -193,6 +196,14 @@ fn build_entries(dir: &Path, files_in_folder: &[String]) -> Vec<(String, String)
 
     matched.extend(new_files.into_iter().map(|f| (f.clone(), f)));
     matched
+}
+
+#[cfg_attr(mobile, tauri::mobile_entry_point)]
+pub fn run() {
+    tauri::Builder::default()
+        .invoke_handler(tauri::generate_handler![rename_files, restore_files])
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
 }
 
 #[cfg(test)]
@@ -224,7 +235,10 @@ mod tests {
         assert!(call(&dir).is_ok());
         assert!(dir.join("01.txt").exists());
         assert!(dir.join("02.txt").exists());
-        assert_eq!(fs::read_to_string(dir.join("filename.txt")).unwrap(), "a.txt\nb.txt");
+        assert_eq!(
+            fs::read_to_string(dir.join("filename.txt")).unwrap(),
+            "a.txt\nb.txt"
+        );
 
         fs::remove_dir_all(&dir).ok();
     }
@@ -286,7 +300,10 @@ mod tests {
 
         assert!(call(&dir).is_ok());
         assert!(dir.join("01.txt").exists());
-        assert_eq!(fs::read_to_string(dir.join("filename.txt")).unwrap(), "a.txt");
+        assert_eq!(
+            fs::read_to_string(dir.join("filename.txt")).unwrap(),
+            "a.txt"
+        );
 
         fs::remove_dir_all(&dir).ok();
     }
@@ -369,9 +386,12 @@ mod tests {
     }
 
     fn no_tmp_left(dir: &std::path::Path) -> bool {
-        fs::read_dir(dir)
-            .unwrap()
-            .all(|e| !e.unwrap().file_name().to_string_lossy().starts_with(".renamer_tmp_"))
+        fs::read_dir(dir).unwrap().all(|e| {
+            !e.unwrap()
+                .file_name()
+                .to_string_lossy()
+                .starts_with(".renamer_tmp_")
+        })
     }
 
     #[test]
@@ -398,8 +418,12 @@ mod tests {
         fs::write(dir.join("a.txt"), "A").unwrap();
         fs::write(dir.join("b.txt"), "B").unwrap();
         call(&dir).unwrap(); // 01.txt=a.txt, 02.txt=b.txt
-        // 事前チェックはすり抜けるが rename は失敗する名前 (NAME_MAX 超過) に差し替える
-        fs::write(dir.join("filename.txt"), format!("a.txt\n{}.txt", "x".repeat(300))).unwrap();
+                             // 事前チェックはすり抜けるが rename は失敗する名前 (NAME_MAX 超過) に差し替える
+        fs::write(
+            dir.join("filename.txt"),
+            format!("a.txt\n{}.txt", "x".repeat(300)),
+        )
+        .unwrap();
 
         assert!(restore(&dir).is_err());
         assert_eq!(fs::read_to_string(dir.join("01.txt")).unwrap(), "A");
@@ -569,12 +593,4 @@ mod tests {
 
         fs::remove_dir_all(&dir).ok();
     }
-}
-
-#[cfg_attr(mobile, tauri::mobile_entry_point)]
-pub fn run() {
-    tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![rename_files, restore_files])
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
 }

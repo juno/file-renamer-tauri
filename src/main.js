@@ -6,6 +6,7 @@ const dropText = document.getElementById('drop-text')
 const dropSubtext = document.getElementById('drop-subtext')
 const dropIcon = document.getElementById('drop-icon')
 const status = document.getElementById('status')
+const undoMode = document.getElementById('undo-mode')
 
 const DEFAULT_TEXT = 'フォルダをドロップ'
 const DEFAULT_SUBTEXT = 'ファイルを連番にリネームして filename.txt を作成します'
@@ -48,9 +49,16 @@ function setDropZoneState(state, message = '') {
     default:
       dropIcon.innerHTML = ICON_DOWNLOAD
       dropText.textContent = DEFAULT_TEXT
-      dropSubtext.textContent = DEFAULT_SUBTEXT
+      dropSubtext.textContent = undoMode.checked ? UNDO_SUBTEXT : DEFAULT_SUBTEXT
   }
 }
+
+const UNDO_SUBTEXT = '連番にリネームされたファイルを元の名前に戻します'
+undoMode.addEventListener('change', () => {
+  if (dropZone.className === '') {
+    dropSubtext.textContent = undoMode.checked ? UNDO_SUBTEXT : DEFAULT_SUBTEXT
+  }
+})
 
 // Click anywhere to reset after success/error
 dropZone.addEventListener('click', () => {
@@ -80,7 +88,8 @@ await appWindow.onDragDropEvent(async (event) => {
     setDropZoneState('loading', paths[0])
 
     try {
-      const result = await invoke('rename_files', { folderPath: paths[0] })
+      const command = undoMode.checked ? 'restore_files' : 'rename_files'
+      const result = await invoke(command, { folderPath: paths[0] })
       setDropZoneState('success', result)
     } catch (err) {
       setDropZoneState('error', String(err))

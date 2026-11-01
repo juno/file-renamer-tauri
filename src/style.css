@@ -108,3 +108,9 @@ body {
   color: #c0392b;
   display: block;
 }
+
+#undo-label {
+  font-size: 12px;
+  opacity: 0.7;
+  user-select: none;
+}

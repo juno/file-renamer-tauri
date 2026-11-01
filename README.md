@@ -13,6 +13,7 @@ A minimal macOS GUI utility that renames all files in a dropped folder to sequen
 - A `filename.txt` is created inside the folder, listing the original filenames in order
 - Automatically switches to 3-digit numbering (`001`, `002`, ...) for 100+ files
 - Drop the same folder again after adding new files — existing files keep their original names, new files are appended at the end in sorted order
+- Check "Undo mode" and drop a renamed folder to restore the original filenames (`filename.txt` is removed)
 
 ### filename.txt
 

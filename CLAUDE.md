@@ -9,9 +9,9 @@ macOS 専用のデスクトップアプリ。フォルダをドロップする�
 ## Commands
 
 ```bash
-npm install            # 依存関係のインストール
-npm run tauri dev      # 開発サーバー起動（Vite + Tauri）
-npm run release        # リリースビルド・ユニバーサルバイナリ（成果物: src-tauri/target/release/bundle/）
+pnpm install            # 依存関係のインストール
+pnpm run tauri dev      # 開発サーバー起動（Vite + Tauri）
+pnpm run release        # リリースビルド・ユニバーサルバイナリ（成果物: src-tauri/target/release/bundle/）
 ```
 
 **README の同期**: `README.md` を編集した場合は必ず `README.ja.md` も同じ内容になるよう日本語訳を更新すること。両ファイルは常に同期を保つ。

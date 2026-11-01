@@ -348,6 +348,49 @@ mod tests {
         fs::remove_dir_all(&dir).ok();
     }
 
+    fn no_tmp_left(dir: &std::path::Path) -> bool {
+        fs::read_dir(dir)
+            .unwrap()
+            .all(|e| !e.unwrap().file_name().to_string_lossy().starts_with(".renamer_tmp_"))
+    }
+
+    #[test]
+    fn rename_rolls_back_when_phase2_fails() {
+        let dir = tmp();
+        fs::write(dir.join("a.txt"), "A").unwrap();
+        fs::write(dir.join("b.txt"), "B").unwrap();
+        // サブディレクトリ "02.txt" があると b.txt → 02.txt の rename が失敗する
+        fs::create_dir(dir.join("02.txt")).unwrap();
+
+        assert!(call(&dir).is_err());
+        assert_eq!(fs::read_to_string(dir.join("a.txt")).unwrap(), "A");
+        assert_eq!(fs::read_to_string(dir.join("b.txt")).unwrap(), "B");
+        assert!(!dir.join("01.txt").exists());
+        assert!(!dir.join("filename.txt").exists());
+        assert!(no_tmp_left(&dir));
+
+        fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn restore_rolls_back_when_phase2_fails() {
+        let dir = tmp();
+        fs::write(dir.join("a.txt"), "A").unwrap();
+        fs::write(dir.join("b.txt"), "B").unwrap();
+        call(&dir).unwrap(); // 01.txt=a.txt, 02.txt=b.txt
+        // 事前チェックはすり抜けるが rename は失敗する名前 (NAME_MAX 超過) に差し替える
+        fs::write(dir.join("filename.txt"), format!("a.txt\n{}.txt", "x".repeat(300))).unwrap();
+
+        assert!(restore(&dir).is_err());
+        assert_eq!(fs::read_to_string(dir.join("01.txt")).unwrap(), "A");
+        assert_eq!(fs::read_to_string(dir.join("02.txt")).unwrap(), "B");
+        assert!(!dir.join("a.txt").exists());
+        assert!(dir.join("filename.txt").exists());
+        assert!(no_tmp_left(&dir));
+
+        fs::remove_dir_all(&dir).ok();
+    }
+
     fn restore(dir: &std::path::Path) -> Result<String, String> {
         restore_files(dir.to_string_lossy().to_string())
     }

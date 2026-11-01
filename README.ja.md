@@ -37,19 +37,19 @@ foo.mp4
 ## セットアップ
 
 ```bash
-npm install
+pnpm install
 ```
 
 ## 開発
 
 ```bash
-npm run tauri dev
+pnpm run tauri dev
 ```
 
 ## ビルド
 
 ```bash
-npm run release
+pnpm run release
 ```
 
 ユニバーサルバイナリ（Apple Silicon + Intel 対応）を生成し、`src-tauri/target/universal-apple-darwin/release/bundle/` に出力される。

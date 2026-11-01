@@ -37,19 +37,19 @@ When you drop the same folder again, `filename.txt` is read to restore the origi
 ## Setup
 
 ```bash
-npm install
+pnpm install
 ```
 
 ## Development
 
 ```bash
-npm run tauri dev
+pnpm run tauri dev
 ```
 
 ## Build
 
 ```bash
-npm run release
+pnpm run release
 ```
 
 Builds a universal binary (Apple Silicon + Intel) and outputs to `src-tauri/target/universal-apple-darwin/release/bundle/`.
